@@ -1,9 +1,9 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:todo_app/bloc/todo_bloc.dart';
 import 'package:todo_app/model/todo_modal.dart';
+import 'package:todo_app/widgets/fab.dart';
+import 'package:todo_app/widgets/todo_widget.dart';
 import 'package:uuid/uuid.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -22,10 +22,15 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
   }
 
-  @override
-  void dispose() {
-    _textController.dispose();
-    super.dispose();
+  void completedTodo({required TodoModel todo, required bool value}) {
+    BlocProvider.of<TodoBloc>(context).add(TodoCompleted(
+      todo: todo,
+      isChecked: value,
+    ));
+  }
+
+  void removedTodo(String id) {
+    BlocProvider.of<TodoBloc>(context).add(TodoDeleted(id: id));
   }
 
   void createTodo() {
@@ -37,172 +42,107 @@ class _HomeScreenState extends State<HomeScreen> {
       );
       BlocProvider.of<TodoBloc>(context).add(TodoCreated(todo: todo));
       _textController.clear();
+      Navigator.pop(context);
     }
   }
 
-  void completedTodo(TodoModel todo) {
-    BlocProvider.of<TodoBloc>(context).add(TodoCompleted(todo: todo));
+  void editTodo(String description) {
+    _textController.text = description;
+    onFABPressed(
+      () {},
+    );
+  }
+
+  void onFABPressed(VoidCallback onSubmitted) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            right: 20,
+            top: 20,
+            left: 20,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+          ),
+          child: TextField(
+            controller: _textController,
+            onSubmitted: (_) => onSubmitted(),
+            autofocus: true,
+            decoration: InputDecoration(
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
+              suffixIcon: IconButton(
+                onPressed: onSubmitted,
+                icon: const Icon(Icons.keyboard_double_arrow_up_outlined),
+              ),
+              label: const Text("Add Todo"),
+              hintText: 'Add your todo...',
+            ),
+          ),
+        );
+      },
+    ).whenComplete(() => _textController.clear());
+  }
+
+  @override
+  void dispose() {
+    _textController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        elevation: 10,
-        title: Text(
-          "Todo App",
-          style: Theme.of(context).textTheme.headlineSmall,
-        ),
+      floatingActionButton: CustomFAB(
+        onPressed: onFABPressed,
+        onCreated: createTodo,
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 20,
-          vertical: 20,
-        ),
-        child: Column(
-          children: [
-            TextField(
-              controller: _textController,
-              onSubmitted: (_) => createTodo(),
-              decoration: InputDecoration(
-                border: const OutlineInputBorder(),
-                suffix: Material(
-                  type: MaterialType.transparency,
-                  child: InkWell(
-                    onTap: createTodo,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                      ),
-                      child: Text(
-                        "Add",
-                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1,
-                            ),
-                      ),
-                    ),
-                  ),
+      resizeToAvoidBottomInset: false,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 20,
+          ),
+          child: Column(
+            children: [
+              Expanded(
+                child: BlocBuilder<TodoBloc, TodoState>(
+                  builder: (context, state) {
+                    switch (state.status) {
+                      case TodoStatus.notFound:
+                        return const Center(
+                          child: Text('No result. Create a new one instead.'),
+                        );
+                      case TodoStatus.initial:
+                        return const Center(
+                          child: Text('No result. Create a new one instead.'),
+                        );
+                      case TodoStatus.created:
+                        if (state.todo.isEmpty) {
+                          return const Center(
+                            child: Text('No result. Create a new one instead.'),
+                          );
+                        }
+                        return ListView.builder(
+                          itemCount: state.todo.length,
+                          itemBuilder: (context, index) {
+                            final todo = state.todo[index];
+                            return TodoWidget(
+                              todo: todo,
+                              onCompletedPressed: completedTodo,
+                              onRemovedPressed: removedTodo,
+                              onEditedPressed: editTodo,
+                            );
+                          },
+                        );
+                      default:
+                        return const Center(child: Text('Default'));
+                    }
+                  },
                 ),
-                label: const Text("Add Todo"),
-                hintText: 'Add your todo...',
               ),
-            ),
-            Expanded(
-              child: BlocBuilder<TodoBloc, TodoState>(
-                builder: (context, state) {
-                  log(state.toString());
-                  switch (state.status) {
-                    case TodoStatus.empty:
-                      return const Center(
-                        child: Text('No result. Create a new one instead.'),
-                      );
-                    case TodoStatus.initial:
-                      if (state.todo.isEmpty) {}
-                      return const Center(
-                        child: Text('No result. Create a new one instead.'),
-                      );
-                    case TodoStatus.created:
-                      return Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const SizedBox(height: 15),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "${state.todo.length} Todo Found",
-                                style: Theme.of(context).textTheme.titleMedium,
-                              ),
-                              Row(
-                                children: [
-                                  TextButton.icon(
-                                    label: Text(
-                                      "Delete",
-                                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                                            color: Colors.red,
-                                          ),
-                                    ),
-                                    onPressed: () => {},
-                                    icon: const Icon(
-                                      Icons.delete,
-                                      color: Colors.red,
-                                      size: 20,
-                                    ),
-                                  ),
-                                  TextButton.icon(
-                                    label: Text(
-                                      "Edit",
-                                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                                            color: Colors.blue,
-                                          ),
-                                    ),
-                                    onPressed: () => {},
-                                    icon: const Icon(
-                                      Icons.edit,
-                                      color: Colors.blue,
-                                      size: 20,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                          Expanded(
-                            child: ListView.builder(
-                              itemCount: state.todo.length,
-                              itemBuilder: (context, index) {
-                                final todo = state.todo[index];
-                                return ListTile(
-                                  contentPadding: EdgeInsets.zero,
-                                  title: Text(
-                                    todo.description,
-                                    style: Theme.of(context).textTheme.titleMedium,
-                                  ),
-                                  subtitle: Row(
-                                    children: [
-                                      Text(
-                                        'Status: ',
-                                        style: Theme.of(context).textTheme.bodyMedium,
-                                      ),
-                                      Text(
-                                        todo.isCompleted ? 'Completed' : 'Not yet started',
-                                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                              color:
-                                                  todo.isCompleted ? Colors.green : Colors.orange,
-                                            ),
-                                      ),
-                                    ],
-                                  ),
-                                  trailing: todo.isCompleted
-                                      ? null
-                                      : TextButton.icon(
-                                          label: Text(
-                                            "Mark as Completed",
-                                            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                                                  color: Colors.green,
-                                                ),
-                                          ),
-                                          onPressed: () => completedTodo(todo),
-                                          icon: const Icon(
-                                            Icons.done,
-                                            color: Colors.green,
-                                            size: 20,
-                                          ),
-                                        ),
-                                );
-                              },
-                            ),
-                          ),
-                        ],
-                      );
-                    default:
-                      return const Center(child: Text('Default'));
-                  }
-                },
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
