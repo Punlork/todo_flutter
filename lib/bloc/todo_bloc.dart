@@ -13,6 +13,7 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
     on<TodoCreated>(onTodoCreated);
     on<TodoCompleted>(onTodoCompleted);
     on<TodoDeleted>(onTodoDeleted);
+    on<TodoEdited>(onTodoEdited);
   }
 
   FutureOr<void> onTodoCreated(
@@ -57,6 +58,22 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
           todo: tempTodo,
         ),
       );
+    } catch (e) {
+      emit(state.copyWith(status: TodoStatus.failed));
+    }
+  }
+
+  FutureOr<void> onTodoEdited(TodoEdited event, Emitter<TodoState> emit) {
+    try {
+      final tempTodo = List<TodoModel>.from(state.todo);
+      final index = tempTodo.indexWhere((element) => element.id == event.todo.id);
+      if (index != -1) {
+        tempTodo[index] = event.todo.copyWith(description: event.todo.description);
+        emit(state.copyWith(
+          status: TodoStatus.created,
+          todo: tempTodo,
+        ));
+      }
     } catch (e) {
       emit(state.copyWith(status: TodoStatus.failed));
     }

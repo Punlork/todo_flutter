@@ -9,6 +9,12 @@ sealed class TodoEvent extends Equatable {
 
 final class TodoSearched extends TodoEvent {}
 
+final class TodoEdited extends TodoEvent {
+  final TodoModel todo;
+
+  const TodoEdited({required this.todo});
+}
+
 final class TodoDeleted extends TodoEvent {
   final String id;
 

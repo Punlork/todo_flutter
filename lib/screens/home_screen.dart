@@ -46,11 +46,13 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void editTodo(String description) {
-    _textController.text = description;
-    onFABPressed(
-      () {},
-    );
+  void editTodo(TodoModel todo) {
+    _textController.text = todo.description;
+    onFABPressed(() {
+      final tempTodo = todo.copyWith(description: _textController.text);
+      BlocProvider.of<TodoBloc>(context).add(TodoEdited(todo: tempTodo));
+      Navigator.pop(context);
+    });
   }
 
   void onFABPressed(VoidCallback onSubmitted) {
