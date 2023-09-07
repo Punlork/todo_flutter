@@ -38,6 +38,7 @@ dependencies:
   uuid: ^4.0.0
   firebase_core: ^2.15.1
   stream_transform: ^2.1.0
+  firebase_database: ^10.2.5
 
 dev_dependencies:
   flutter_test:

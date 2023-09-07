@@ -4,6 +4,7 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:stream_transform/stream_transform.dart';
 import 'package:todo_app/model/todo_modal.dart';
+import 'package:todo_app/service/database.dart';
 
 part 'todo_event.dart';
 part 'todo_state.dart';
@@ -23,10 +24,12 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
     on<TodoSearched>(onTodoSearched, transformer: debounce(_duration));
   }
 
+  final firebaseDB = FirebaseDB();
+
   FutureOr<void> onTodoCreated(
     TodoCreated event,
     Emitter<TodoState> emit,
-  ) {
+  ) async {
     try {
       final tempTodos = List<TodoModel>.from(state.todos);
 
@@ -35,6 +38,7 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
         status: TodoStatus.created,
         todos: tempTodos,
       ));
+      await firebaseDB.addTodo(event.todo);
     } catch (e) {
       emit(state.copyWith(status: TodoStatus.failed));
     }

@@ -1,7 +1,9 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:todo_app/bloc/todo_bloc.dart';
 import 'package:todo_app/model/todo_modal.dart';
+import 'package:todo_app/service/database.dart';
 import 'package:todo_app/widgets/fab.dart';
 import 'package:todo_app/widgets/todo_widget.dart';
 import 'package:uuid/uuid.dart';
@@ -18,8 +20,15 @@ class _HomeScreenState extends State<HomeScreen> {
   late final TextEditingController _searchController;
   late final TodoBloc todoBloc;
 
+  final firebaseDB = FirebaseDB();
+
+  void getData() async {
+    await firebaseDB.getTodos();
+  }
+
   @override
   void initState() {
+    getData();
     todoBloc = BlocProvider.of<TodoBloc>(context);
     _searchController = TextEditingController();
     _textController = TextEditingController();
