@@ -7,7 +7,11 @@ sealed class TodoEvent extends Equatable {
   List<Object> get props => [];
 }
 
-final class TodoSearched extends TodoEvent {}
+final class TodoSearched extends TodoEvent {
+  final String keyword;
+
+  const TodoSearched({required this.keyword});
+}
 
 final class TodoEdited extends TodoEvent {
   final TodoModel todo;

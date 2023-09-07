@@ -12,22 +12,30 @@ enum TodoStatus {
 class TodoState extends Equatable {
   const TodoState({
     this.status = TodoStatus.initial,
-    this.todo = const [],
+    this.todos = const [],
+    this.completedTodos = const [],
+    this.filteredTodos = const [],
   });
 
   final TodoStatus status;
-  final List<TodoModel> todo;
+  final List<TodoModel> todos;
+  final List<TodoModel> filteredTodos;
+  final List<TodoModel> completedTodos;
 
   TodoState copyWith({
     TodoStatus? status,
-    List<TodoModel>? todo,
+    List<TodoModel>? todos,
+    List<TodoModel>? filteredTodos,
+    List<TodoModel>? completedTodos,
   }) {
     return TodoState(
       status: status ?? this.status,
-      todo: todo ?? this.todo,
+      todos: todos ?? this.todos,
+      filteredTodos: filteredTodos ?? this.filteredTodos,
+      completedTodos: completedTodos ?? this.completedTodos,
     );
   }
 
   @override
-  List<Object> get props => [status, todo];
+  List<Object> get props => [status, todos, filteredTodos, completedTodos];
 }

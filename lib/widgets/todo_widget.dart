@@ -40,9 +40,9 @@ class TodoWidget extends StatelessWidget {
         borderRadius: BorderRadius.circular(10),
         boxShadow: [
           CustomBoxShadow(
-            color: Colors.white.withOpacity(.2),
+            color: todo.isCompleted ? Colors.green : Colors.white.withOpacity(.1),
             blurStyle: BlurStyle.outer,
-            blurRadius: 4,
+            blurRadius: 3,
           ),
         ],
       ),
