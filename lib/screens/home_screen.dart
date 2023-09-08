@@ -59,8 +59,10 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       } else {
         const uuid = Uuid();
+        final id = uuid.v1();
         final todo = TodoModel(
-          id: uuid.v1(),
+          id: id,
+          key: id,
           description: _textController.text,
         );
         BlocProvider.of<TodoBloc>(context).add(TodoCreated(todo: todo));
@@ -98,7 +100,6 @@ class _HomeScreenState extends State<HomeScreen> {
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(15),
               ),
-              prefixIcon: const Icon(Icons.search),
               suffixIcon: IconButton(
                 onPressed: onSubmitted,
                 icon: const Icon(Icons.keyboard_double_arrow_up_outlined),
@@ -133,6 +134,7 @@ class _HomeScreenState extends State<HomeScreen> {
       },
       decoration: InputDecoration(
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
+        prefixIcon: const Icon(Icons.search),
         suffixIcon: _searchController.text.isNotEmpty
             ? GestureDetector(
                 onTap: _onClearTapped,

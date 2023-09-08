@@ -91,16 +91,22 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
   FutureOr<void> onTodoDeleted(TodoDeleted event, Emitter<TodoState> emit) {
     try {
       final tempTodos = List<TodoModel>.from(state.todos);
-      tempTodos.removeWhere((todo) => todo.id == event.todo.id);
+      final tempCompletedTodos = List<TodoModel>.from(state.completedTodos);
 
-      firebaseDB.deleteTodo(
-        todo: event.todo,
-      );
+      tempTodos.removeWhere((todo) => todo.id == event.todo.id);
+      tempCompletedTodos.removeWhere((todo) => todo.id == event.todo.id);
+
       emit(
         state.copyWith(
           status: TodoStatus.created,
           todos: tempTodos,
+          completedTodos: tempCompletedTodos,
         ),
+      );
+
+      // Delete the todo from the database
+      firebaseDB.deleteTodo(
+        todo: event.todo,
       );
     } catch (e) {
       emit(state.copyWith(status: TodoStatus.failed));

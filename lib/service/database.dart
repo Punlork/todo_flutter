@@ -71,7 +71,7 @@ class FirebaseDB {
 
   Future<void> addTodo(TodoModel todo) async {
     try {
-      final String? newTodoKey = _ref.push().key;
+      // final String? newTodoKey = _ref.push().key;
 
       final Map<String, dynamic> todoData = {
         'description': todo.description,
@@ -80,7 +80,7 @@ class FirebaseDB {
         'id': todo.id,
       };
 
-      await _ref.child(newTodoKey!).set(todoData);
+      await _ref.child(todo.id).set(todoData);
     } catch (error) {
       log("Error adding todo: $error");
       rethrow;
