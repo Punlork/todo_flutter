@@ -27,7 +27,7 @@ class MyApp extends StatelessWidget {
       ),
       themeMode: ThemeMode.dark,
       home: BlocProvider(
-        create: (context) => TodoBloc(),
+        create: (context) => TodoBloc()..add(TodoLoaded()),
         child: const HomeScreen(),
       ),
     );

@@ -21,6 +21,7 @@ class TodoModel {
     bool? isEditSelected,
     bool? isDeleteSelected,
     String? id,
+    String? key,
   }) {
     return TodoModel(
       description: description ?? this.description,
@@ -28,14 +29,16 @@ class TodoModel {
       isEditSelected: isEditSelected ?? this.isEditSelected,
       isDeleteSelected: isDeleteSelected ?? this.isDeleteSelected,
       id: id ?? this.id,
+      key: key ?? this.key,
     );
   }
 
-  factory TodoModel.fromRTDB(Map<String, dynamic> data) {
+  factory TodoModel.fromRTDB(String key, Map<String, dynamic> data) {
     return TodoModel(
       description: data['description'],
       id: data['description'],
       isCompleted: data['isCompleted'],
+      key: key,
     );
   }
 }

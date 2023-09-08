@@ -1,4 +1,3 @@
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:todo_app/bloc/todo_bloc.dart';
@@ -42,8 +41,8 @@ class _HomeScreenState extends State<HomeScreen> {
     ));
   }
 
-  void removedTodo(String id) {
-    BlocProvider.of<TodoBloc>(context).add(TodoDeleted(id: id));
+  void removedTodo(TodoModel todo) {
+    BlocProvider.of<TodoBloc>(context).add(TodoDeleted(todo: todo));
   }
 
   void createTodo() {
@@ -174,6 +173,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ],
                   );
+                case TodoStatus.loading:
+                  return const Center(
+                    child: CircularProgressIndicator.adaptive(),
+                  );
                 case TodoStatus.initial:
                   return const Center(
                     child: Text('No result. Create a new one instead.'),
@@ -210,7 +213,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Completed: $completedTodosLength ${completedTodosLength > 2 ? 'todos' : 'todo'}',
+                                  'Completed: $completedTodosLength ${completedTodosLength >= 2 ? 'todos' : 'todo'}',
                                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
                                         color: Colors.green,
                                         fontWeight: FontWeight.w600,

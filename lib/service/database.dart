@@ -6,25 +6,19 @@ import 'package:todo_app/model/todo_modal.dart';
 class FirebaseDB {
   final DatabaseReference _ref = FirebaseDatabase.instance.ref("todos/");
 
-  // Add this method to retrieve todos
   Future<List<TodoModel>> getTodos() async {
     try {
       DataSnapshot snapshot = await _ref.get();
       if (snapshot.exists) {
-        log(snapshot.value.toString());
-        // Map<String, dynamic> data = snapshot.value as Map<String, dynamic>;
         final data = Map<String, dynamic>.from(
           snapshot.value as Map<Object?, Object?>,
         );
         List<TodoModel> todos = [];
         data.forEach((key, value) {
-          todos.add(
-            TodoModel(
-                key: key,
-                description: value['description'],
-                id: value['id'],
-                isCompleted: value['isCompleted']),
+          final todo = Map<String, dynamic>.from(
+            value as Map<Object?, Object?>,
           );
+          todos.add(TodoModel.fromRTDB(key, todo));
         });
         return todos;
       } else {
@@ -32,6 +26,45 @@ class FirebaseDB {
       }
     } catch (error) {
       log("Error fetching todos: $error");
+      rethrow;
+    }
+  }
+
+  void updateTodo({
+    required TodoModel todo,
+    bool? isCompleted,
+    String? description,
+  }) async {
+    try {
+      log(todo.key);
+      DatabaseReference todoRef = _ref.child(todo.key);
+
+      Map<String, dynamic> updatedData = {};
+
+      if (isCompleted != null) {
+        updatedData["isCompleted"] = isCompleted;
+      }
+
+      if (description != null) {
+        updatedData["description"] = description;
+      }
+
+      await todoRef.update(updatedData);
+    } catch (error) {
+      log('Error updating todo status: $error');
+      rethrow;
+    }
+  }
+
+  void deleteTodo({
+    required TodoModel todo,
+  }) async {
+    try {
+      DatabaseReference todoRef = _ref.child(todo.key);
+
+      await todoRef.remove();
+    } catch (error) {
+      log('Error updating todo status: $error');
       rethrow;
     }
   }

@@ -21,6 +21,7 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
     on<TodoCompleted>(onTodoCompleted);
     on<TodoDeleted>(onTodoDeleted);
     on<TodoEdited>(onTodoEdited);
+    on<TodoLoaded>(onTodoLoaded);
     on<TodoSearched>(onTodoSearched, transformer: debounce(_duration));
   }
 
@@ -44,7 +45,10 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
     }
   }
 
-  FutureOr<void> onTodoCompleted(TodoCompleted event, Emitter<TodoState> emit) {
+  FutureOr<void> onTodoCompleted(
+    TodoCompleted event,
+    Emitter<TodoState> emit,
+  ) {
     try {
       final tempTodos = List<TodoModel>.from(state.todos);
       final tempCompletedTodos = List<TodoModel>.from(state.completedTodos);
@@ -67,6 +71,11 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
         }
       }
 
+      firebaseDB.updateTodo(
+        todo: event.todo,
+        isCompleted: event.isChecked,
+      );
+
       emit(
         state.copyWith(
           status: TodoStatus.created,
@@ -82,7 +91,11 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
   FutureOr<void> onTodoDeleted(TodoDeleted event, Emitter<TodoState> emit) {
     try {
       final tempTodos = List<TodoModel>.from(state.todos);
-      tempTodos.removeWhere((todo) => todo.id == event.id);
+      tempTodos.removeWhere((todo) => todo.id == event.todo.id);
+
+      firebaseDB.deleteTodo(
+        todo: event.todo,
+      );
       emit(
         state.copyWith(
           status: TodoStatus.created,
@@ -105,6 +118,10 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
           todos: tempTodos,
         ));
       }
+      firebaseDB.updateTodo(
+        todo: event.todo,
+        description: event.todo.description,
+      );
     } catch (e) {
       emit(state.copyWith(status: TodoStatus.failed));
     }
@@ -139,6 +156,31 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
             ),
           );
         }
+      }
+    } catch (e) {
+      emit(state.copyWith(status: TodoStatus.failed));
+    }
+  }
+
+  FutureOr<void> onTodoLoaded(
+    TodoLoaded event,
+    Emitter<TodoState> emit,
+  ) async {
+    try {
+      emit(state.copyWith(status: TodoStatus.loading));
+      final response = await firebaseDB.getTodos();
+      if (response.isNotEmpty) {
+        final completedTodos = response.where((todo) => todo.isCompleted).toList();
+        final todos = response.where((todo) => todo.isCompleted != true).toList();
+        emit(
+          state.copyWith(
+            status: TodoStatus.created,
+            todos: todos,
+            completedTodos: completedTodos,
+          ),
+        );
+      } else {
+        emit(state.copyWith(status: TodoStatus.empty));
       }
     } catch (e) {
       emit(state.copyWith(status: TodoStatus.failed));
