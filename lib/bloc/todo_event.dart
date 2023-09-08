@@ -20,9 +20,9 @@ final class TodoEdited extends TodoEvent {
 }
 
 final class TodoDeleted extends TodoEvent {
-  final String id;
+  final TodoModel todo;
 
-  const TodoDeleted({required this.id});
+  const TodoDeleted({required this.todo});
 }
 
 final class TodoCompleted extends TodoEvent {
@@ -39,3 +39,5 @@ final class TodoCreated extends TodoEvent {
     required this.todo,
   });
 }
+
+final class TodoLoaded extends TodoEvent {}

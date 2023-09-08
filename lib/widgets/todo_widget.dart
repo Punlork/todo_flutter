@@ -18,7 +18,7 @@ class TodoWidget extends StatelessWidget {
     required bool value,
   }) onCompletedPressed;
 
-  final void Function(String id) onRemovedPressed;
+  final void Function(TodoModel todo) onRemovedPressed;
   final void Function(TodoModel todo) onEditedPressed;
 
   PopupMenuItem<String> buildPopupMenuItem(String value, String text, IconData icon) {
@@ -78,7 +78,7 @@ class TodoWidget extends StatelessWidget {
                 if (value == 'edit') {
                   onEditedPressed(todo);
                 } else if (value == 'delete') {
-                  onRemovedPressed(todo.id);
+                  onRemovedPressed(todo);
                 }
               },
               child: const Icon(
